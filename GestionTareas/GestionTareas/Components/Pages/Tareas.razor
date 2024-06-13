@@ -1,8 +1,9 @@
 ﻿@page "/tareas"
-@inject GestionTareas.Services.TareaService tareaService
+@inject GestionTareas.Services.ITareaService tareaService
 @inject IJSRuntime JSRuntime
 @using GestionTareas.Models
 @implements IDisposable
+@rendermode InteractiveServer
 
 <h3>Gestión de Tareas</h3>
 
@@ -73,7 +74,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadMoreItems();
+        try
+        {
+            await LoadMoreItems();
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error initializing component: {ex.Message}");
+        }
     }
 
     private void ShowAddTaskForm()
@@ -90,35 +98,59 @@
 
     private async Task AddTask()
     {
-        await tareaService.AddTaskAsync(Model);
-        tareas = await tareaService.GetTasksAsync(1, tareas.Count); // Reload all tasks
-        showAddTaskForm = false;
+        try
+        {
+            await tareaService.AddTaskAsync(Model);
+            tareas = await tareaService.GetTasksAsync(1, tareas.Count); // Reload all tasks
+            showAddTaskForm = false;
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error adding task: {ex.Message}");
+        }
     }
 
     private async Task LoadMoreItems()
     {
         if (isLoading) return;
 
-        isLoading = true;
-        var tareasNuevas = await tareaService.GetTasksAsync(currentPage, pageSize);
-        if (tareasNuevas.Any())
+        try
         {
-            tareas.AddRange(tareasNuevas);
-            currentPage++;
+            isLoading = true;
+            var tareasNuevas = await tareaService.GetTasksAsync(currentPage, pageSize);
+            if (tareasNuevas.Any())
+            {
+                tareas.AddRange(tareasNuevas);
+                currentPage++;
+            }
         }
-        isLoading = false;
-        StateHasChanged();
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error loading more items: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private async Task OnScroll()
     {
-        var scrollPosition = await JSRuntime.InvokeAsync<double>("getScrollPosition", scrollContainer);
-        var clientHeight = await JSRuntime.InvokeAsync<double>("getClientHeight", scrollContainer);
-        var scrollHeight = await JSRuntime.InvokeAsync<double>("getScrollHeight", scrollContainer);
-
-        if (scrollPosition + clientHeight >= scrollHeight - 10)
+        try
         {
-            await LoadMoreItems();
+            var scrollPosition = await JSRuntime.InvokeAsync<double>("getScrollPosition", scrollContainer);
+            var clientHeight = await JSRuntime.InvokeAsync<double>("getClientHeight", scrollContainer);
+            var scrollHeight = await JSRuntime.InvokeAsync<double>("getScrollHeight", scrollContainer);
+
+            if (scrollPosition + clientHeight >= scrollHeight - 10)
+            {
+                await LoadMoreItems();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error on scroll: {ex.Message}");
         }
     }
 
