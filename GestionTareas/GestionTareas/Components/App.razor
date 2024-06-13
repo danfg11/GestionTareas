@@ -15,6 +15,20 @@
 <body>
     <Routes />
     <script src="_framework/blazor.web.js"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script>
+        window.getScrollPosition = (element) => {
+            return element.scrollTop;
+        };
+
+        window.getScrollHeight = (element) => {
+            return element.scrollHeight;
+        };
+
+        window.getClientHeight = (element) => {
+            return element.clientHeight;
+        };
+    </script>
 </body>
 
 </html>

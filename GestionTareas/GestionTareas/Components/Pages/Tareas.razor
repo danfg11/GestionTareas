@@ -1,0 +1,129 @@
+﻿@page "/tareas"
+@inject GestionTareas.Services.TareaService tareaService
+@inject IJSRuntime JSRuntime
+@using GestionTareas.Models
+@implements IDisposable
+
+<h3>Gestión de Tareas</h3>
+
+<button @onclick="ShowAddTaskForm">Añadir Nueva Tarea</button>
+
+@if (showAddTaskForm)
+{
+    <EditForm Model="Model" OnValidSubmit="AddTask">
+        <DataAnnotationsValidator />
+        <div>
+            <label>Nombre:</label>
+            <InputText @bind-Value="Model.Name" />
+        </div>
+        <div>
+            <label>Descripción:</label>
+            <InputTextArea @bind-Value="Model.Description" />
+        </div>
+        <div>
+            <label>Estado:</label>
+            <InputSelect @bind-Value="Model.Status">
+                @foreach (var status in Enum.GetValues(typeof(EstadoTareas)))
+                {
+                    <option value="@status">@status</option>
+                }
+            </InputSelect>
+        </div>
+        <div>
+            <label>Bloqueada:</label>
+            <InputCheckbox @bind-Value="Model.IsBlocked" />
+        </div>
+        <button type="submit">Guardar</button>
+        <button type="button" @onclick="CancelAddTask">Cancelar</button>
+    </EditForm>
+}
+
+<div @ref="scrollContainer" style="overflow-y: auto; height: 80vh;" @onscroll="OnScroll">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Estado</th>
+                <th>Bloqueada</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var tarea in tareas)
+            {
+                <tr>
+                    <td>@tarea.Name</td>
+                    <td>@tarea.Description</td>
+                    <td>@tarea.Status</td>
+                    <td>@tarea.IsBlocked</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private List<TareaItem> tareas = new();
+    private TareaItem Model = new();
+    private bool showAddTaskForm = false;
+    private int currentPage = 1;
+    private const int pageSize = 100;
+    private ElementReference scrollContainer;
+    private bool isLoading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMoreItems();
+    }
+
+    private void ShowAddTaskForm()
+    {
+        showAddTaskForm = true;
+        Model = new TareaItem();
+    }
+
+    private void CancelAddTask()
+    {
+        showAddTaskForm = false;
+        Model = new TareaItem();
+    }
+
+    private async Task AddTask()
+    {
+        await tareaService.AddTaskAsync(Model);
+        tareas = await tareaService.GetTasksAsync(1, tareas.Count); // Reload all tasks
+        showAddTaskForm = false;
+    }
+
+    private async Task LoadMoreItems()
+    {
+        if (isLoading) return;
+
+        isLoading = true;
+        var tareasNuevas = await tareaService.GetTasksAsync(currentPage, pageSize);
+        if (tareasNuevas.Any())
+        {
+            tareas.AddRange(tareasNuevas);
+            currentPage++;
+        }
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task OnScroll()
+    {
+        var scrollPosition = await JSRuntime.InvokeAsync<double>("getScrollPosition", scrollContainer);
+        var clientHeight = await JSRuntime.InvokeAsync<double>("getClientHeight", scrollContainer);
+        var scrollHeight = await JSRuntime.InvokeAsync<double>("getScrollHeight", scrollContainer);
+
+        if (scrollPosition + clientHeight >= scrollHeight - 10)
+        {
+            await LoadMoreItems();
+        }
+    }
+
+    public void Dispose()
+    {
+        // Clean up resources if needed
+    }
+}
