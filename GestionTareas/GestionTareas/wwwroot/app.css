@@ -63,7 +63,7 @@ h1:focus {
     margin: 4px 2px;
     transition-duration: 0.4s;
     cursor: pointer;
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 10px; /* Rounded corners */
 }
 
     .btn-custom:hover {
@@ -84,7 +84,7 @@ h1:focus {
     margin: 4px 2px;
     transition-duration: 0.4s;
     cursor: pointer;
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 10px; /* Rounded corners */
 }
 
     .btn-danger-custom:hover {
@@ -105,7 +105,7 @@ h1:focus {
     margin: 4px 2px;
     transition-duration: 0.4s;
     cursor: pointer;
-    border-radius: 5px; /* Rounded corners */
+    border-radius: 10px; /* Rounded corners */
 }
 
     .btn-warning-custom:hover {

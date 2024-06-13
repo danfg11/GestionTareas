@@ -64,7 +64,6 @@ namespace GestionTareas.Services
         {
             try
             {
-                tarea.Id = _context.TareasItems.Any() ? _context.TareasItems.Max(t => t.Id) + 1 : 1;
                 _context.TareasItems.Add(tarea);
                 await _context.SaveChangesAsync();
             }

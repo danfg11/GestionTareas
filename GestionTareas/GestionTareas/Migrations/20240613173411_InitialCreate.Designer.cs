@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GestionTareas.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240613152208_InitialCreate")]
+    [Migration("20240613173411_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,12 +33,14 @@ namespace GestionTareas.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsBlocked")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Status")
@@ -46,7 +48,7 @@ namespace GestionTareas.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TareaItems");
+                    b.ToTable("TareasItems");
                 });
 #pragma warning restore 612, 618
         }
