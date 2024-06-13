@@ -3,19 +3,19 @@
 @inject IJSRuntime JSRuntime
 @using GestionTareas.Models
 @implements IDisposable
-@rendermode InteractiveServer
 
 <h3>Gestión de Tareas</h3>
 
 <button @onclick="ShowAddTaskForm">Añadir Nueva Tarea</button>
 
-@if (showAddTaskForm)
+@if (showAddTaskForm || selectedTask != null)
 {
-    <EditForm Model="Model" OnValidSubmit="AddTask">
+    <EditForm Model="Model" OnValidSubmit="SaveTask">
         <DataAnnotationsValidator />
         <div>
             <label>Nombre:</label>
             <InputText @bind-Value="Model.Name" />
+            <ValidationMessage For="() => Model.Name" />
         </div>
         <div>
             <label>Descripción:</label>
@@ -35,7 +35,7 @@
             <InputCheckbox @bind-Value="Model.IsBlocked" />
         </div>
         <button type="submit">Guardar</button>
-        <button type="button" @onclick="CancelAddTask">Cancelar</button>
+        <button type="button" @onclick="CancelTask">Cancelar</button>
     </EditForm>
 }
 
@@ -47,6 +47,7 @@
                 <th>Descripción</th>
                 <th>Estado</th>
                 <th>Bloqueada</th>
+                <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
@@ -57,6 +58,10 @@
                     <td>@tarea.Description</td>
                     <td>@tarea.Status</td>
                     <td>@tarea.IsBlocked</td>
+                    <td>
+                        <button @onclick="() => EditTask(tarea.Id)">Editar</button>
+                        <button @onclick="() => DeleteTask(tarea.Id)">Eliminar</button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -66,6 +71,7 @@
 @code {
     private List<TareaItem> tareas = new();
     private TareaItem Model = new();
+    private TareaItem selectedTask = null;
     private bool showAddTaskForm = false;
     private int currentPage = 1;
     private const int pageSize = 100;
@@ -90,23 +96,33 @@
         Model = new TareaItem();
     }
 
-    private void CancelAddTask()
+    private void CancelTask()
     {
         showAddTaskForm = false;
+        selectedTask = null;
         Model = new TareaItem();
     }
 
-    private async Task AddTask()
+    private async Task SaveTask()
     {
         try
         {
-            await tareaService.AddTaskAsync(Model);
+            if (Model.Id == 0)
+            {
+                await tareaService.AddTaskAsync(Model);
+            }
+            else
+            {
+                await tareaService.UpdateTaskAsync(Model);
+            }
+
             tareas = await tareaService.GetTasksAsync(1, tareas.Count); // Reload all tasks
             showAddTaskForm = false;
+            selectedTask = null;
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine($"Error adding task: {ex.Message}");
+            Console.Error.WriteLine($"Error saving task: {ex.Message}");
         }
     }
 
@@ -151,6 +167,36 @@
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Error on scroll: {ex.Message}");
+        }
+    }
+
+    private async Task EditTask(int id)
+    {
+        try
+        {
+            selectedTask = await tareaService.GetTaskByIdAsync(id);
+            if (selectedTask != null)
+            {
+                Model = selectedTask;
+                showAddTaskForm = true;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error editing task: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteTask(int id)
+    {
+        try
+        {
+            await tareaService.DeleteTaskAsync(id);
+            tareas = await tareaService.GetTasksAsync(1, tareas.Count);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"Error deleting task: {ex.Message}");
         }
     }
 

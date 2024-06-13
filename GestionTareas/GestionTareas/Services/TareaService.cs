@@ -1,6 +1,7 @@
 ﻿using GestionTareas.Models;
 using GestionTareas.Data;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,13 +22,13 @@ namespace GestionTareas.Services
             try
             {
                 return await _context.TareasItems
+                                     .OrderBy(t => t.Id)
                                      .Skip((pageNumber - 1) * pageSize)
                                      .Take(pageSize)
                                      .ToListAsync();
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.Error.WriteLine($"Error fetching tasks: {ex.Message}");
                 return new List<TareaItem>();
             }
@@ -41,9 +42,21 @@ namespace GestionTareas.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.Error.WriteLine($"Error counting tasks: {ex.Message}");
                 return 0;
+            }
+        }
+
+        public async Task<TareaItem> GetTaskByIdAsync(int id)
+        {
+            try
+            {
+                return await _context.TareasItems.FindAsync(id);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"Error fetching task by ID: {ex.Message}");
+                return null;
             }
         }
 
@@ -57,7 +70,6 @@ namespace GestionTareas.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.Error.WriteLine($"Error adding task: {ex.Message}");
             }
         }
@@ -78,7 +90,6 @@ namespace GestionTareas.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.Error.WriteLine($"Error updating task: {ex.Message}");
             }
         }
@@ -96,7 +107,6 @@ namespace GestionTareas.Services
             }
             catch (Exception ex)
             {
-                // Log the exception
                 Console.Error.WriteLine($"Error deleting task: {ex.Message}");
             }
         }
