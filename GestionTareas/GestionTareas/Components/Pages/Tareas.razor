@@ -6,41 +6,47 @@
 
 <h3>Gestión de Tareas</h3>
 
-<button @onclick="ShowAddTaskForm">Añadir Nueva Tarea</button>
+<button class="btn-custom mb-3" @onclick="ShowAddTaskForm">
+    <i class="fas fa-plus"></i> Añadir Nueva Tarea
+</button>
 
 @if (showAddTaskForm || selectedTask != null)
 {
     <EditForm Model="Model" OnValidSubmit="SaveTask">
         <DataAnnotationsValidator />
-        <div>
+        <div class="form-group">
             <label>Nombre:</label>
-            <InputText @bind-Value="Model.Name" />
+            <InputText class="form-control" @bind-Value="Model.Name" />
             <ValidationMessage For="() => Model.Name" />
         </div>
-        <div>
+        <div class="form-group">
             <label>Descripción:</label>
-            <InputTextArea @bind-Value="Model.Description" />
+            <InputTextArea class="form-control" @bind-Value="Model.Description" />
         </div>
-        <div>
+        <div class="form-group">
             <label>Estado:</label>
-            <InputSelect @bind-Value="Model.Status">
+            <InputSelect class="form-control" @bind-Value="Model.Status">
                 @foreach (var status in Enum.GetValues(typeof(EstadoTareas)))
                 {
                     <option value="@status">@status</option>
                 }
             </InputSelect>
         </div>
-        <div>
+        <div class="form-group">
             <label>Bloqueada:</label>
             <InputCheckbox @bind-Value="Model.IsBlocked" />
         </div>
-        <button type="submit">Guardar</button>
-        <button type="button" @onclick="CancelTask">Cancelar</button>
+        <button type="submit" class="btn-custom">
+            <i class="fas fa-save"></i> Guardar
+        </button>
+        <button type="button" class="btn-danger-custom" @onclick="CancelTask">
+            <i class="fas fa-times"></i> Cancelar
+        </button>
     </EditForm>
 }
 
 <div @ref="scrollContainer" style="overflow-y: auto; height: 80vh;" @onscroll="OnScroll">
-    <table class="table">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Nombre</th>
@@ -59,8 +65,12 @@
                     <td>@tarea.Status</td>
                     <td>@tarea.IsBlocked</td>
                     <td>
-                        <button @onclick="() => EditTask(tarea.Id)">Editar</button>
-                        <button @onclick="() => DeleteTask(tarea.Id)">Eliminar</button>
+                        <button class="btn-warning-custom btn-sm" @onclick="() => EditTask(tarea.Id)">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn-danger-custom btn-sm" @onclick="() => DeleteTask(tarea.Id)">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
                     </td>
                 </tr>
             }
@@ -116,7 +126,7 @@
                 await tareaService.UpdateTaskAsync(Model);
             }
 
-            tareas = await tareaService.GetTasksAsync(1, tareas.Count); // Reload all tasks
+            tareas = await tareaService.GetTasksAsync(1, tareas.Count);
             showAddTaskForm = false;
             selectedTask = null;
         }
